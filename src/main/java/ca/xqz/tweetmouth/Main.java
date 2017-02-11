@@ -1,3 +1,5 @@
+package ca.xqz.tweetmouth;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
