@@ -19,9 +19,13 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import spark.Spark;
 import spark.Route;
+import spark.TemplateEngine;
+
+import spark.template.mustache.MustacheTemplateEngine;
 
 class Main {
     private final static int CLIENT_PORT = 9300;
+    private final static TemplateEngine TEMPLATE = new MustacheTemplateEngine();
 
     private static TransportClient getTransportClient() {
         InetAddress localhost;
@@ -39,6 +43,7 @@ class Main {
     public static void main(String[] args) {
         TransportClient client = getTransportClient();
         System.out.println("Successfully created a client");
+
         try {
             List<Tweet> tweetList = TweetParser.parseTweetsFromFile(System.in);
             System.out.println(tweetList.get(55));
