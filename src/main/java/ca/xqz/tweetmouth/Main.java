@@ -10,22 +10,34 @@ import java.io.IOException;
 
 import java.util.List;
 
+import org.elasticsearch.action.search.SearchResponse;
+
 import org.elasticsearch.client.transport.TransportClient;
 
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
+import spark.ModelAndView;
 import spark.Spark;
-import spark.Route;
 import spark.TemplateEngine;
+import spark.TemplateViewRoute;
 
 import spark.template.mustache.MustacheTemplateEngine;
 
 class Main {
     private final static int CLIENT_PORT = 9300;
     private final static TemplateEngine TEMPLATE = new MustacheTemplateEngine();
+    private final static TemplateViewRoute SEARCH = (req, res) -> {
+        TransportClient client = getTransportClient();
+        QueryBuilder qb = QueryBuilders.simpleQueryStringQuery(req.queryParams("q"));
+        SearchResponse search_res = client.prepareSearch().setQuery(qb).get();
+        return new ModelAndView(search_res, "results.html");
+    };
 
     private static TransportClient getTransportClient() {
         InetAddress localhost;
@@ -52,10 +64,10 @@ class Main {
             throw new RuntimeException(e);
         }
 
-        Spark.staticFileLocation("/public");
-        Spark.init();
-
         client.close();
         System.out.println("Successfully closed a client");
+
+        Spark.staticFileLocation("/public");
+        Spark.get("/search", SEARCH, TEMPLATE);
     }
 }
