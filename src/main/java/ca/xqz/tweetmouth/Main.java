@@ -8,7 +8,9 @@ import java.net.UnknownHostException;
 
 import java.io.IOException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.elasticsearch.action.search.SearchResponse;
 
@@ -36,7 +38,13 @@ class Main {
         TransportClient client = getTransportClient();
         QueryBuilder qb = QueryBuilders.simpleQueryStringQuery(req.queryParams("q"));
         SearchResponse search_res = client.prepareSearch().setQuery(qb).get();
-        return new ModelAndView(search_res, "results.html");
+        Map<String, Object> temp_res = new HashMap<String, Object>();
+        temp_res.put("resp", search_res);
+        temp_res.put("hits", search_res.getHits());
+        temp_res.put("total_hits", search_res.getHits().getTotalHits());
+        temp_res.put("suggest", search_res.getSuggest());
+        System.out.println(search_res);
+        return new ModelAndView(temp_res, "results.html");
     };
 
     private static TransportClient getTransportClient() {

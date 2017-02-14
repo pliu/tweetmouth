@@ -1,1 +1,8 @@
 <h1>Search Results</h1>
+Total Hits: {{total_hits}}
+{{#hits}}
+{{explanation()}}
+{{/hits}}
+{{^hits}}
+No hits :( {{suggest}}
+{{/hits}}
