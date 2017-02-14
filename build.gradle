@@ -36,6 +36,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+compileJava {
+    options.compilerArgs.addAll(['-Xlint:unchecked'])
+}
+
 run {
     standardInput = System.in
 }
