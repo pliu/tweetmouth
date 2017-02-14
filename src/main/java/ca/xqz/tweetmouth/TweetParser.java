@@ -47,15 +47,16 @@ public class TweetParser {
         }
         HashMap<String, String> tweetMap = new HashMap<>();
         for (int i = 0; i < orderedLabels.size(); i ++) {
-            tweetMap.put(orderedLabels.get(i), tokens.get(i));
+            if (!tokens.get(i).equals("") && !tokens.get(i).equals("null")) {
+                tweetMap.put(orderedLabels.get(i), tokens.get(i));
+            }
         }
         return tweetMap;
     }
 
     private List<String> processTweet(String tweet) {
         List<String> tokenList = Arrays.asList(tweet.split("~"));
-        List<String> processedTokens = tokenList.stream().map(s -> s.trim()).collect(Collectors.toList());
-        return processedTokens;
+        return tokenList.stream().map(s -> s.trim()).collect(Collectors.toList());
     }
 
     @Override
@@ -73,7 +74,7 @@ public class TweetParser {
         List<Map<String, String>> mappedTweets = parser.getMappedTweetsFromFile(100);
         for (Map<String, String> map : mappedTweets) {
             for (String key : map.keySet()) {
-                System.out.print(key + ": " + map.get(key) + "\t");
+                System.out.println(key + ": " + map.get(key));
             }
             System.out.println();
         }
