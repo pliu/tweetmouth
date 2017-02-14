@@ -7,12 +7,18 @@ import java.util.stream.Collectors;
 
 public class TweetParser {
 
+    private final static String MESSAGE_KEY = "tweet message";
+    private final static String REFERENCES_KEY = "references";
+    private final static String HASHTAGS_KEY = "hashtag";
+
     private BufferedReader input;
     private List<String> orderedLabels;
 
     public TweetParser(String path) throws Exception {
         this.input = new BufferedReader(new FileReader(path));
-        orderedLabels = processTweet(input.readLine());
+        orderedLabels = processTweet(input.readLine()).stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
     }
 
     public TweetParser(List<String> orderedLabels) {
@@ -51,12 +57,30 @@ public class TweetParser {
                 tweetMap.put(orderedLabels.get(i), tokens.get(i));
             }
         }
+        parseMessage(tweetMap);
         return tweetMap;
+    }
+
+    private void parseMessage(HashMap<String, String> tweetMap) {
+        String message = tweetMap.get(MESSAGE_KEY);
+        List<String> tokens = Arrays.asList(message.split("\\s+"));
+        Optional<String> references = tokens.parallelStream()
+                .filter(s -> s.startsWith("@") && s.length() > 1)
+                .map(s -> s.substring(1).toLowerCase())
+                .reduce((s1, s2) -> s1 + " " + s2);
+        Optional<String> hashtags = tokens.parallelStream()
+                .filter(s -> s.startsWith("#") && s.length() > 1)
+                .map(s -> s.substring(1).toLowerCase())
+                .reduce((s1, s2) -> s1 + " " + s2);
+        references.ifPresent(s -> tweetMap.put(REFERENCES_KEY, s));
+        hashtags.ifPresent(s -> tweetMap.put(HASHTAGS_KEY, s));
     }
 
     private List<String> processTweet(String tweet) {
         List<String> tokenList = Arrays.asList(tweet.split("~"));
-        return tokenList.stream().map(s -> s.trim()).collect(Collectors.toList());
+        return tokenList.stream()
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -68,10 +92,7 @@ public class TweetParser {
 
     public static void main(String[] args) throws Exception {
         TweetParser parser = new TweetParser("D:\\Programming\\tweetmouth\\TweetsDataset.txt");
-        for (String label : parser.orderedLabels) {
-            System.out.println(label);
-        }
-        List<Map<String, String>> mappedTweets = parser.getMappedTweetsFromFile(100);
+        List<Map<String, String>> mappedTweets = parser.getMappedTweetsFromFile(100000);
         for (Map<String, String> map : mappedTweets) {
             for (String key : map.keySet()) {
                 System.out.println(key + ": " + map.get(key));

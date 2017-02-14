@@ -26,5 +26,7 @@ public class TweetLoader {
         TransportClient client = new PreBuiltTransportClient(Settings.EMPTY)
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(HOST), CLIENT_PORT));
         System.out.println("Successfully created a client");
+
+        client.close();
     }
 }
