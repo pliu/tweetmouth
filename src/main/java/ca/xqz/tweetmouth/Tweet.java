@@ -2,6 +2,8 @@ package ca.xqz.tweetmouth;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 public class Tweet {
@@ -29,45 +31,20 @@ public class Tweet {
         long id, userId;
         String handle = null, name = null, message = null, createdAt = null, userLocation = null, geoLocation = null;
 
-        try {
-            id = Long.parseLong(tokens.get(0));
-        } catch (NumberFormatException e) {
-            // TODO: Replace with logging
-            // System.out.println(tokens.get(0) + " is not properly formatted");
-            return null;
-        }
-        try {
-            userId = Long.parseLong(tokens.get(7));
-        } catch (NumberFormatException e) {
+        id = longTokenCheck.applyAsLong(tokens.get(0));
+        userId = longTokenCheck.applyAsLong(tokens.get(7));
+        if (id == -1 || userId == -1) {
             // TODO: Replace with logging
             // System.out.println(tokens.get(0) + " is not properly formatted");
             return null;
         }
 
-        String check = tokens.get(1);
-        if (!check.equals("null") && !check.equals("")) {
-            handle = check;
-        }
-        check = tokens.get(2);
-        if (!check.equals("null") && !check.equals("")) {
-            name = check;
-        }
-        check = tokens.get(3);
-        if (!check.equals("null") && !check.equals("")) {
-            message = check;
-        }
-        check = tokens.get(4);
-        if (!check.equals("null") && !check.equals("")) {
-            createdAt = check;
-        }
-        check = tokens.get(5);
-        if (!check.equals("null") && !check.equals("")) {
-            userLocation = check;
-        }
-        check = tokens.get(6);
-        if (!check.equals("null") && !check.equals("")) {
-            geoLocation = check;
-        }
+        handle = stringTokenCheck.apply(tokens.get(1));
+        name = stringTokenCheck.apply(tokens.get(2));
+        message = stringTokenCheck.apply(tokens.get(3));
+        createdAt = stringTokenCheck.apply(tokens.get(4));
+        userLocation = stringTokenCheck.apply(tokens.get(5));
+        geoLocation = stringTokenCheck.apply(tokens.get(6));
 
         return new Tweet(id, handle, name, message, createdAt, userLocation, geoLocation, userId);
     }
@@ -105,25 +82,35 @@ public class Tweet {
         }
     }
 
+    private static Function<String, String> stringTokenCheck = (token) -> (token.equals("null") || token.equals("")) ? "" : token;
+
+    private static ToLongFunction<String> longTokenCheck = (token) -> {
+        try {
+            return Long.parseLong(token);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    };
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("id: " + id + "\n");
-        if (handle != null) {
+        if (handle != "") {
             sb.append("handle: " + handle + "\n");
         }
-        if (name != null) {
+        if (name != "") {
             sb.append("name: " + name + "\n");
         }
-        if (message != null) {
+        if (message != "") {
             sb.append("message: " + message + "\n");
         }
-        if (createdAt != null) {
+        if (createdAt != "") {
             sb.append("createdAt: " + createdAt + "\n");
         }
-        if (userLocation != null) {
+        if (userLocation != "") {
             sb.append("userLocation: " + userLocation + "\n");
         }
-        if (geoLocation != null) {
+        if (geoLocation != "") {
             sb.append("geoLocation: " + geoLocation + "\n");
         }
         if (references != null) {

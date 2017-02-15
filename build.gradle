@@ -33,7 +33,7 @@ dependencies {
 
     compile 'org.elasticsearch:elasticsearch:5.2.0'
     compile 'org.elasticsearch.client:transport:5.2.0'
-    compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
+    compile 'commons-cli:commons-cli:1.2'
 
     testCompile 'junit:junit:4.12'
 }
