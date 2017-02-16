@@ -8,8 +8,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -73,15 +75,24 @@ public class TweetLoader {
         System.out.println("Successfully created a client");
 
         List<Tweet> tweets = parser.getParsedTweets(loadSize);
+        int iter = 1;
         while (tweets.size() > 0) {
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (Tweet tweet : tweets) {
-                IndexRequest indexRequest = new IndexRequest("index", "type", Long.toString(tweet.getId()))
-                        .source(gson.toJson(tweet));
-                UpdateRequest updateRequest = new UpdateRequest("index", "type", Long.toString(tweet.getId()))
-                        .doc(gson.toJson(tweet))
-                        .upsert(indexRequest);
-                client.update(updateRequest).get();
+                bulkRequest.add(new IndexRequest("index", "type", Long.toString(tweet.getId()))
+                        .source(gson.toJson(tweet)));
             }
+            int count = 0;
+            BulkResponse resp = bulkRequest.get();
+            if (resp.hasFailures()) {
+                for (BulkItemResponse r : resp.getItems()) {
+                    if (r.isFailed()) {
+                        count ++;
+                    }
+                }
+                System.out.println(count + " failed");
+            }
+            System.out.println("Processed " + loadSize*(iter ++));
             tweets = parser.getParsedTweets(loadSize);
         }
         client.close();
