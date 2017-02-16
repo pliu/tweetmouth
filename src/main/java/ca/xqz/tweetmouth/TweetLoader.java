@@ -1,5 +1,6 @@
 package ca.xqz.tweetmouth;
 
+import com.google.gson.Gson;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -14,11 +15,9 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
+import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.util.List;
-import java.util.Map;
-
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class TweetLoader {
 
@@ -40,6 +39,10 @@ public class TweetLoader {
         sizeOption.setType(Number.class);
         options.addOption(sizeOption);
 
+        Option fileOption = new Option("f", "file", true, "The path to the  tweet file");
+        fileOption.setRequired(true);
+        options.addOption(fileOption);
+
         CommandLineParser clParser = new PosixParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
@@ -60,35 +63,27 @@ public class TweetLoader {
         if (cmd.hasOption("size")) {
             loadSize = ((Number) cmd.getParsedOptionValue("size")).intValue();
         }
+        String path = cmd.getOptionValue("file");
 
-        /*
-        String path = args[0];
-        TweetParser parser = new TweetParser(path);
+        TweetParser parser = new TweetParser(new FileInputStream(path));
+        Gson gson = new Gson();
 
         Client client = new PreBuiltTransportClient(Settings.EMPTY)
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
         System.out.println("Successfully created a client");
 
-        List<Map<String, String>> tweetMaps = parser.getMappedTweetsFromFile(loadSize);
-        // while (tweetMaps.size() > 0) {
-            for (Map<String, String> map : tweetMaps) {
-                IndexRequest indexRequest = new IndexRequest("index", "type", "1")
-                        .source(jsonBuilder()
-                                .startObject()
-                                .field("name", "Joe Smith")
-                                .field("gender", "male")
-                                .endObject());
-                UpdateRequest updateRequest = new UpdateRequest("index", "type", "1")
-                        .doc(jsonBuilder()
-                                .startObject()
-                                .field("gender", "male")
-                                .endObject())
+        List<Tweet> tweets = parser.getParsedTweets(loadSize);
+        while (tweets.size() > 0) {
+            for (Tweet tweet : tweets) {
+                IndexRequest indexRequest = new IndexRequest("index", "type", Long.toString(tweet.getId()))
+                        .source(gson.toJson(tweet));
+                UpdateRequest updateRequest = new UpdateRequest("index", "type", Long.toString(tweet.getId()))
+                        .doc(gson.toJson(tweet))
                         .upsert(indexRequest);
                 client.update(updateRequest).get();
             }
-            tweetMaps = parser.getMappedTweetsFromFile(loadSize);
-        // }
-
-        client.close();*/
+            tweets = parser.getParsedTweets(loadSize);
+        }
+        client.close();
     }
 }

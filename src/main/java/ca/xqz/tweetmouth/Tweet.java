@@ -39,7 +39,7 @@ public class Tweet {
             return null;
         }
 
-        handle = stringTokenCheck.apply(tokens.get(1));
+        handle = stringTokenCheck.apply(tokens.get(1)).toLowerCase();
         name = stringTokenCheck.apply(tokens.get(2));
         message = stringTokenCheck.apply(tokens.get(3));
         createdAt = stringTokenCheck.apply(tokens.get(4));
@@ -60,6 +60,10 @@ public class Tweet {
         this.geoLocation = geoLocation;
         this.userId = userId;
         parseMessage();
+    }
+
+    public long getId() {
+        return id;
     }
 
     private void parseMessage() {
