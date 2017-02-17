@@ -8,6 +8,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -35,9 +37,11 @@ public class TweetLoader {
     public TweetLoader(String host, int port, String index, String type) throws Exception {
         client = new PreBuiltTransportClient(Settings.EMPTY)
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
+        System.out.println("Client created");
         gson = new Gson();
         this.index = index;
         this.type = type;
+        maybeCreateIndex();
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
@@ -56,6 +60,30 @@ public class TweetLoader {
                 }
             }
             System.out.println(count + " failed");
+        }
+    }
+
+    private void maybeCreateIndex() {
+        IndicesExistsResponse resp = client.admin().indices().exists(new IndicesExistsRequest(index)).actionGet();
+        if (!resp.isExists()) {
+            System.out.println("Index doesn't exist; creating it");
+            client.admin().indices().prepareCreate(index)
+                    .addMapping(type, "{\n" +
+                            "    \"" + type + "\": {\n" +
+                            "      \"properties\": {\n" +
+                            "        \"createdAt\": {\n" +
+                            "          \"type\": \"date\",\n" +
+                            "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
+                            "        },\n" +
+                            "        \"geoLocation\": {\n" +
+                            "          \"type\": \"geo_point\"\n" +
+                            "        }\n" +
+                            "      }\n" +
+                            "    }\n" +
+                            "  }")
+                    .get();
+        } else {
+            System.out.println("Index already exists");
         }
     }
 
@@ -106,6 +134,7 @@ public class TweetLoader {
         TweetParser parser = new TweetParser(new FileInputStream(path));
         TweetLoader loader = new TweetLoader(host, port, "test_index", "tweet");
 
+        System.out.println("Loading data");
         List<Tweet> tweets = parser.getParsedTweets(loadSize);
         int iter = 1;
         while (tweets.size() > 0) {

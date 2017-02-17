@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 
 public class Tweet {
 
-    private final static DateFormat OUTPUT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public final static String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    private final static DateFormat OUTPUT_DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT);
     private final static DateFormat INPUT_DATE_FORMAT = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy",
             Locale.ENGLISH);
     private final static Pattern GEOLOCATION_PATTERN = Pattern
@@ -51,7 +53,7 @@ public class Tweet {
             return null;
         }
 
-        handle = stringTokenCheck.apply(tokens.get(1)).toLowerCase();
+        handle = stringTokenCheck.apply(tokens.get(1));
         name = stringTokenCheck.apply(tokens.get(2));
         message = stringTokenCheck.apply(tokens.get(3));
         createdAt = stringTokenCheck.apply(tokens.get(4));
@@ -100,7 +102,7 @@ public class Tweet {
             List<String> tokens = Arrays.asList(message.split("\\s+"));
             references = tokens.parallelStream()
                     .filter(s -> s.startsWith("@") && s.length() > 1)
-                    .map(s -> s.substring(1).toLowerCase())
+                    .map(s -> s.substring(1))
                     .map(s -> {
                         if (!Character.isLetterOrDigit(s.charAt(s.length() - 1)) &&
                                 !(s.charAt(s.length() - 1) == '_')) {
@@ -111,7 +113,7 @@ public class Tweet {
                     .collect(Collectors.toList());
             hashtags = tokens.parallelStream()
                     .filter(s -> s.startsWith("#") && s.length() > 1)
-                    .map(s -> s.substring(1).toLowerCase())
+                    .map(s -> s.substring(1))
                     .collect(Collectors.toList());
             if (references.isEmpty()) {
                 references = null;
@@ -123,7 +125,7 @@ public class Tweet {
     }
 
     private static Function<String, String> stringTokenCheck = (token) -> (token.equals("null") || token.equals("")) ?
-            null : token;
+            null : token.toLowerCase();
 
     private static ToLongFunction<String> longTokenCheck = (token) -> {
         try {
