@@ -1,14 +1,30 @@
 package ca.xqz.tweetmouth;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Tweet {
 
+    private final static DateFormat OUTPUT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final static DateFormat INPUT_DATE_FORMAT = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy",
+            Locale.ENGLISH);
+    private final static Pattern GEOLOCATION_PATTERN = Pattern
+            .compile(".*latitude=(-?\\d+\\.\\d+), longitude=(-?\\d+\\.\\d+)}");
     private final static int NUM_NONDERIVED_FIELDS = 8;
+
+    static {
+        INPUT_DATE_FORMAT.setLenient(true);
+    }
 
     private long id;
     private String handle;
@@ -23,19 +39,15 @@ public class Tweet {
 
     public static Tweet getTweet(List<String> tokens) {
         if (tokens.size() != Tweet.NUM_NONDERIVED_FIELDS) {
-            // TODO: Replace with logging
-            // System.out.println(tokens.get(0) + " is not properly formatted");
             return null;
         }
 
         long id, userId;
-        String handle = null, name = null, message = null, createdAt = null, userLocation = null, geoLocation = null;
+        String handle, name, message, createdAt, userLocation, geoLocation;
 
         id = longTokenCheck.applyAsLong(tokens.get(0));
         userId = longTokenCheck.applyAsLong(tokens.get(7));
         if (id == -1 || userId == -1) {
-            // TODO: Replace with logging
-            // System.out.println(tokens.get(0) + " is not properly formatted");
             return null;
         }
 
@@ -45,6 +57,23 @@ public class Tweet {
         createdAt = stringTokenCheck.apply(tokens.get(4));
         userLocation = stringTokenCheck.apply(tokens.get(5));
         geoLocation = stringTokenCheck.apply(tokens.get(6));
+
+        if (createdAt != null) {
+            Date date;
+            try {
+                date = INPUT_DATE_FORMAT.parse(createdAt);
+                createdAt = OUTPUT_DATE_FORMAT.format(date);
+            } catch (ParseException e) {
+                return null;
+            }
+        }
+
+        if (geoLocation != null) {
+            Matcher m = GEOLOCATION_PATTERN.matcher(geoLocation);
+            if (m.find()) {
+                geoLocation = m.group(1) + "," + m.group(2);
+            }
+        }
 
         return new Tweet(id, handle, name, message, createdAt, userLocation, geoLocation, userId);
     }
@@ -72,6 +101,13 @@ public class Tweet {
             references = tokens.parallelStream()
                     .filter(s -> s.startsWith("@") && s.length() > 1)
                     .map(s -> s.substring(1).toLowerCase())
+                    .map(s -> {
+                        if (!Character.isLetterOrDigit(s.charAt(s.length() - 1)) &&
+                                !(s.charAt(s.length() - 1) == '_')) {
+                            return s.substring(0, s.length() - 1);
+                        }
+                        return s;
+                    })
                     .collect(Collectors.toList());
             hashtags = tokens.parallelStream()
                     .filter(s -> s.startsWith("#") && s.length() > 1)
@@ -86,7 +122,8 @@ public class Tweet {
         }
     }
 
-    private static Function<String, String> stringTokenCheck = (token) -> (token.equals("null") || token.equals("")) ? "" : token;
+    private static Function<String, String> stringTokenCheck = (token) -> (token.equals("null") || token.equals("")) ?
+            null : token;
 
     private static ToLongFunction<String> longTokenCheck = (token) -> {
         try {
@@ -99,22 +136,22 @@ public class Tweet {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("id: " + id + "\n");
-        if (handle != "") {
+        if (handle != null) {
             sb.append("handle: " + handle + "\n");
         }
-        if (name != "") {
+        if (name != null) {
             sb.append("name: " + name + "\n");
         }
-        if (message != "") {
+        if (message != null) {
             sb.append("message: " + message + "\n");
         }
-        if (createdAt != "") {
+        if (createdAt != null) {
             sb.append("createdAt: " + createdAt + "\n");
         }
-        if (userLocation != "") {
+        if (userLocation != null) {
             sb.append("userLocation: " + userLocation + "\n");
         }
-        if (geoLocation != "") {
+        if (geoLocation != null) {
             sb.append("geoLocation: " + geoLocation + "\n");
         }
         if (references != null) {

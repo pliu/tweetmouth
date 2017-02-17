@@ -27,6 +27,42 @@ public class TweetLoader {
     private final static int DEFAULT_PORT = 9300;
     private final static int DEFAULT_LOAD_SIZE = 1000;
 
+    private Client client;
+    private Gson gson;
+    private String index;
+    private String type;
+
+    public TweetLoader(String host, int port, String index, String type) throws Exception {
+        client = new PreBuiltTransportClient(Settings.EMPTY)
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
+        gson = new Gson();
+        this.index = index;
+        this.type = type;
+    }
+
+    // TODO: Add buffering if we hook this up to the Twitter stream
+    public void loadTweets(List<Tweet> tweets) {
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        for (Tweet tweet : tweets) {
+            bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
+                    .source(gson.toJson(tweet)));
+        }
+        int count = 0;
+        BulkResponse resp = bulkRequest.get();
+        if (resp.hasFailures()) {
+            for (BulkItemResponse r : resp.getItems()) {
+                if (r.isFailed()) {
+                    count ++;
+                }
+            }
+            System.out.println(count + " failed");
+        }
+    }
+
+    public void finalize() {
+        client.close();
+    }
+
     public static void main(String[] args) throws Exception {
         Options options = new Options();
 
@@ -68,33 +104,14 @@ public class TweetLoader {
         String path = cmd.getOptionValue("file");
 
         TweetParser parser = new TweetParser(new FileInputStream(path));
-        Gson gson = new Gson();
-
-        Client client = new PreBuiltTransportClient(Settings.EMPTY)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
-        System.out.println("Successfully created a client");
+        TweetLoader loader = new TweetLoader(host, port, "test_index", "tweet");
 
         List<Tweet> tweets = parser.getParsedTweets(loadSize);
         int iter = 1;
         while (tweets.size() > 0) {
-            BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (Tweet tweet : tweets) {
-                bulkRequest.add(new IndexRequest("index", "type", Long.toString(tweet.getId()))
-                        .source(gson.toJson(tweet)));
-            }
-            int count = 0;
-            BulkResponse resp = bulkRequest.get();
-            if (resp.hasFailures()) {
-                for (BulkItemResponse r : resp.getItems()) {
-                    if (r.isFailed()) {
-                        count ++;
-                    }
-                }
-                System.out.println(count + " failed");
-            }
+            loader.loadTweets(tweets);
             System.out.println("Processed " + loadSize*(iter ++));
             tweets = parser.getParsedTweets(loadSize);
         }
-        client.close();
     }
 }

@@ -17,6 +17,7 @@ public class TweetParser {
         this.input = new BufferedReader(new InputStreamReader(in));
     }
 
+    // TODO: Handle exceptions if we hook this up to the Twitter stream
     public List<Tweet> getParsedTweets(int num) throws Exception {
         ArrayList<Tweet> parsedTweets = new ArrayList<>();
         String line = input.readLine();
