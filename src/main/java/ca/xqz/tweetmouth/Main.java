@@ -1,8 +1,5 @@
 package ca.xqz.tweetmouth;
 
-import ca.xqz.tweetmouth.Tweet;
-import ca.xqz.tweetmouth.TweetParser;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -60,19 +57,11 @@ class Main {
             .addTransportAddress(new InetSocketTransportAddress(localhost, CLIENT_PORT));
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         TransportClient client = getTransportClient();
         System.out.println("Successfully created a client");
 
-        try {
-            List<Tweet> tweetList = TweetParser.parseTweetsFromFile(System.in);
-            System.out.println(tweetList.get(55));
-        } catch (IOException e) {
-            System.out.println("IO Exception in parsing tweets");
-            throw new RuntimeException(e);
-        }
-
-        client.close();
+        // client.close();
         System.out.println("Successfully closed a client");
 
         Spark.staticFileLocation("/public");
