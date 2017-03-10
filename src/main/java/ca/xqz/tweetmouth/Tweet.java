@@ -23,6 +23,7 @@ public class Tweet {
     private final static Pattern GEOLOCATION_PATTERN = Pattern
             .compile(".*latitude=(-?\\d+\\.\\d+), longitude=(-?\\d+\\.\\d+)}");
     private final static int NUM_NONDERIVED_FIELDS = 8;
+    private final static Pattern HANDLE_PATTERN = Pattern.compile("@([a-z0-9_]{1,15})$");
 
     static {
         INPUT_DATE_FORMAT.setLenient(true);
@@ -101,15 +102,8 @@ public class Tweet {
         if (message != null) {
             List<String> tokens = Arrays.asList(message.split("\\s+"));
             references = tokens.parallelStream()
-                    .filter(s -> s.startsWith("@") && s.length() > 1)
+                    .filter(s -> HANDLE_PATTERN.matcher(s).find())
                     .map(s -> s.substring(1))
-                    .map(s -> {
-                        if (!Character.isLetterOrDigit(s.charAt(s.length() - 1)) &&
-                                !(s.charAt(s.length() - 1) == '_')) {
-                            return s.substring(0, s.length() - 1);
-                        }
-                        return s;
-                    })
                     .collect(Collectors.toList());
             hashtags = tokens.parallelStream()
                     .filter(s -> s.startsWith("#") && s.length() > 1)

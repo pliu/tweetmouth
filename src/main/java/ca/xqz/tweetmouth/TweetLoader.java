@@ -63,9 +63,13 @@ public class TweetLoader {
         }
     }
 
-    private void maybeCreateIndex() {
+    private boolean indexExists() {
         IndicesExistsResponse resp = client.admin().indices().exists(new IndicesExistsRequest(index)).actionGet();
-        if (!resp.isExists()) {
+        return resp.isExists();
+    }
+
+    private void maybeCreateIndex() {
+        if (!indexExists()) {
             System.out.println("Index doesn't exist; creating it");
             client.admin().indices().prepareCreate(index)
                     .addMapping(type, "{\n" +
