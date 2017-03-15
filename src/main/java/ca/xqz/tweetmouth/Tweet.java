@@ -129,6 +129,10 @@ public class Tweet {
         }
     };
 
+    public String getMessage() {
+        return message;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("id: " + id + "\n");
