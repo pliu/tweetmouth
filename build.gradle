@@ -36,6 +36,8 @@ dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.code.gson:gson:1.7.2'
 
+    compile 'edu.stanford.nlp:stanford-corenlp:3.7.0'
+
     testCompile 'junit:junit:4.12'
 }
 
