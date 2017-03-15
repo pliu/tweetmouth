@@ -45,9 +45,13 @@ compileJava {
     options.compilerArgs.addAll(['-Xlint:unchecked'])
 }
 
-run {
+task ingest(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    main = 'ca.xqz.tweetmouth.Ingest'
+
     standardInput = System.in
 }
 
 // Define the main class for the application
-mainClassName = 'ca.xqz.tweetmouth.Main'
+mainClassName = 'ca.xqz.tweetmouth.WebServer'
