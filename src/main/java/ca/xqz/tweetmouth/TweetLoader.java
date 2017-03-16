@@ -41,7 +41,8 @@ public class TweetLoader {
         gson = new Gson();
         this.index = index;
         this.type = type;
-        maybeCreateIndex();
+        if (!indexExists())
+            createIndex();
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
@@ -68,27 +69,23 @@ public class TweetLoader {
         return resp.isExists();
     }
 
-    private void maybeCreateIndex() {
-        if (!indexExists()) {
-            System.out.println("Index doesn't exist; creating it");
-            client.admin().indices().prepareCreate(index)
-                    .addMapping(type, "{\n" +
-                            "    \"" + type + "\": {\n" +
-                            "      \"properties\": {\n" +
-                            "        \"createdAt\": {\n" +
-                            "          \"type\": \"date\",\n" +
-                            "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
-                            "        },\n" +
-                            "        \"geoLocation\": {\n" +
-                            "          \"type\": \"geo_point\"\n" +
-                            "        }\n" +
-                            "      }\n" +
-                            "    }\n" +
-                            "  }")
-                    .get();
-        } else {
-            System.out.println("Index already exists");
-        }
+    private void createIndex() {
+        System.out.println("Index doesn't exist; creating it");
+        client.admin().indices().prepareCreate(index)
+            .addMapping(type, "{\n" +
+                        "    \"" + type + "\": {\n" +
+                        "      \"properties\": {\n" +
+                        "        \"createdAt\": {\n" +
+                        "          \"type\": \"date\",\n" +
+                        "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
+                        "        },\n" +
+                        "        \"geoLocation\": {\n" +
+                        "          \"type\": \"geo_point\"\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  }")
+            .get();
     }
 
     public void finalize() {
