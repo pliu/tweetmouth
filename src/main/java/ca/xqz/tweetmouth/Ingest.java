@@ -14,9 +14,10 @@ class Ingest {
     public static void main(String[] args) {
         TransportClient client = ESUtil.getTransportClient();
         System.out.println("Successfully created a client");
+        TweetParser parser = new TweetParser();
 
         try {
-            List<Tweet> tweetList = TweetParser.parseTweetsFromFile(System.in);
+            List<Tweet> tweetList = parser.getParsedTweets();
             System.out.println(tweetList.get(55));
         } catch (IOException e) {
             System.out.println("IO Exception in parsing tweets");

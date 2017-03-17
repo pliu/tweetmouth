@@ -28,9 +28,6 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 public class TweetLoader {
-
-    private final static String DEFAULT_HOST = "127.0.0.1";
-    private final static int DEFAULT_PORT = 9300;
     private final static int DEFAULT_LOAD_SIZE = 1000;
 
     private Client client;
@@ -39,19 +36,17 @@ public class TweetLoader {
     private String type;
 
     public TweetLoader(String host, int port, String index, String type) {
-        /* TODO: Use ESUtil when that exists */
-        try {
-            client = new PreBuiltTransportClient(Settings.EMPTY)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
-        } catch (UnknownHostException e) {
-            throw new RuntimeException("Unable to get ES client for Tweet Loader");
-        }
+        client = ESUtil.getTransportClient(host, port);
         System.out.println("Client created");
         gson = new Gson();
         this.index = index;
         this.type = type;
         if (!indexExists())
             createIndex();
+    }
+
+    public static int getDefaultSize() {
+        return DEFAULT_LOAD_SIZE;
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
@@ -127,8 +122,10 @@ public class TweetLoader {
             System.exit(1);
         }
 
-        String host = cmd.getOptionValue("host", DEFAULT_HOST);
-        int port = DEFAULT_PORT, loadSize = DEFAULT_LOAD_SIZE;
+        String host = cmd.getOptionValue("host", ESUtil.getDefaultHost());
+        int port = ESUtil.getDefaultPort();
+        int loadSize = DEFAULT_LOAD_SIZE;
+
         try {
             if (cmd.hasOption("port")) {
                 port = ((Number) cmd.getParsedOptionValue("port")).intValue();

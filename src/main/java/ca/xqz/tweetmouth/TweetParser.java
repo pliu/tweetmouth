@@ -1,5 +1,7 @@
 package ca.xqz.tweetmouth;
 
+import ca.xqz.tweetmouth.TweetLoader;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -17,6 +19,17 @@ public class TweetParser {
 
     public TweetParser() {
         this.input = new BufferedReader(new InputStreamReader(System.in));
+    }
+
+    public List<Tweet> getParsedTweets() throws IOException {
+        List<Tweet> tweets = new ArrayList<Tweet>();
+        do {
+            List<Tweet> ofSomeTweets = getParsedTweets(TweetLoader.getDefaultSize());
+            if (ofSomeTweets.size() == 0)
+                break;
+            tweets.addAll(ofSomeTweets);
+        } while(true);
+        return tweets;
     }
 
     // TODO: Handle exceptions if we hook this up to the Twitter stream
