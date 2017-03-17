@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,12 +15,12 @@ public class TweetParser {
 
     private BufferedReader input;
 
-    public TweetParser(InputStream in) throws Exception {
-        this.input = new BufferedReader(new InputStreamReader(in));
+    public TweetParser() {
+        this.input = new BufferedReader(new InputStreamReader(System.in));
     }
 
     // TODO: Handle exceptions if we hook this up to the Twitter stream
-    public List<Tweet> getParsedTweets(int num) throws Exception {
+    public List<Tweet> getParsedTweets(int num) throws IOException {
         ArrayList<Tweet> parsedTweets = new ArrayList<>();
         String line = input.readLine();
         for (int i = 0; line != null && i < num; i ++) {
@@ -43,9 +45,15 @@ public class TweetParser {
         return Tweet.getTweet(tokens);
     }
 
-    public static void main(String[] args) throws Exception {
-        TweetParser parser = new TweetParser(new FileInputStream("D:\\Programming\\tweetmouth\\TweetsDataset.txt"));
-        List<Tweet> parsedTweets = parser.getParsedTweets(100000);
+    public static void main(String[] args) {
+        TweetParser parser = new TweetParser();
+        List<Tweet> parsedTweets;
+        try {
+            parsedTweets = parser.getParsedTweets(100000);
+        } catch (IOException e) {
+            System.err.println("Lol error:" + e);
+            return;
+        }
         for (Tweet tweet: parsedTweets) {
             System.out.println(tweet);
         }

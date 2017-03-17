@@ -20,7 +20,11 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import java.util.List;
 
 public class TweetLoader {
@@ -34,9 +38,14 @@ public class TweetLoader {
     private String index;
     private String type;
 
-    public TweetLoader(String host, int port, String index, String type) throws Exception {
-        client = new PreBuiltTransportClient(Settings.EMPTY)
+    public TweetLoader(String host, int port, String index, String type) {
+        /* TODO: Use ESUtil when that exists */
+        try {
+            client = new PreBuiltTransportClient(Settings.EMPTY)
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("Unable to get ES client for Tweet Loader");
+        }
         System.out.println("Client created");
         gson = new Gson();
         this.index = index;
@@ -92,7 +101,7 @@ public class TweetLoader {
         client.close();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Options options = new Options();
 
         Option hostOption = new Option("h", "host", true, "The hostname of the ES node");
@@ -105,10 +114,6 @@ public class TweetLoader {
         Option sizeOption = new Option("s", "size", true, "The number of tweets in a bundle");
         sizeOption.setType(Number.class);
         options.addOption(sizeOption);
-
-        Option fileOption = new Option("f", "file", true, "The path to the  tweet file");
-        fileOption.setRequired(true);
-        options.addOption(fileOption);
 
         CommandLineParser clParser = new PosixParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -124,24 +129,35 @@ public class TweetLoader {
 
         String host = cmd.getOptionValue("host", DEFAULT_HOST);
         int port = DEFAULT_PORT, loadSize = DEFAULT_LOAD_SIZE;
-        if (cmd.hasOption("port")) {
-            port = ((Number) cmd.getParsedOptionValue("port")).intValue();
+        try {
+            if (cmd.hasOption("port")) {
+                port = ((Number) cmd.getParsedOptionValue("port")).intValue();
+            }
+            if (cmd.hasOption("size")) {
+                loadSize = ((Number) cmd.getParsedOptionValue("size")).intValue();
+            }
+        } catch (ParseException e) {
+            System.err.println("Error parsing options: " + e);
+            return;
         }
-        if (cmd.hasOption("size")) {
-            loadSize = ((Number) cmd.getParsedOptionValue("size")).intValue();
-        }
-        String path = cmd.getOptionValue("file");
 
-        TweetParser parser = new TweetParser(new FileInputStream(path));
+        TweetParser parser = new TweetParser();
         TweetLoader loader = new TweetLoader(host, port, "test_index", "tweet");
 
         System.out.println("Loading data");
-        List<Tweet> tweets = parser.getParsedTweets(loadSize);
+        List<Tweet> tweets;
         int iter = 1;
-        while (tweets.size() > 0) {
+        do {
+            try {
+                tweets = parser.getParsedTweets(loadSize);
+            } catch (IOException e) {
+                System.err.println("Failed to process tweets.");
+                return;
+            }
+            if (tweets.size() <= 0)
+                break;
             loader.loadTweets(tweets);
             System.out.println("Processed " + loadSize*(iter ++));
-            tweets = parser.getParsedTweets(loadSize);
-        }
+         } while (true);
     }
 }
