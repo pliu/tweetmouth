@@ -1,15 +1,30 @@
 package ca.xqz.tweetmouth;
 
+import ca.xqz.tweetmouth.TweetAnnotator;
+
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
+import java.util.ArrayList;
+import java.util.function.Consumer;
+import java.util.List;
 import java.util.Properties;
 
 class Pipeline extends StanfordCoreNLP {
-    private static final String PROPERTIES = "tokenize, pos, lemma, sentiment";
+    private static final String PROPERTIES = TweetAnnotator.getProp() + ", tokenize, pos, lemma, sentiment";
+    private static final List<Consumer<Properties>> ANNOTATOR_SETTERS = new ArrayList<Consumer<Properties>>();
+
+    static {
+        ANNOTATOR_SETTERS.add(TweetAnnotator::setProps);
+    };
 
     public static Pipeline getPipeline() {
         Properties props = new Properties();
+
+        for (Consumer<Properties> annotatorSetter : ANNOTATOR_SETTERS) {
+            annotatorSetter.accept(props);
+        }
+
         props.setProperty("annotators", PROPERTIES);
         return new Pipeline(props);
     }
