@@ -1,14 +1,9 @@
 package ca.xqz.tweetmouth;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.elasticsearch.client.transport.TransportClient;
-
 import org.elasticsearch.action.search.SearchResponse;
 
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import java.util.HashMap;
+import java.util.Map;
 
 import spark.ModelAndView;
 import spark.Spark;
@@ -18,11 +13,11 @@ import spark.TemplateViewRoute;
 import spark.template.mustache.MustacheTemplateEngine;
 
 class WebServer {
+    private static ESClient client = new ESClient();
+
     private final static TemplateEngine TEMPLATE = new MustacheTemplateEngine();
     private final static TemplateViewRoute SEARCH = (req, res) -> {
-        TransportClient client = ESUtil.getTransportClient();
-        QueryBuilder qb = QueryBuilders.simpleQueryStringQuery(req.queryParams("q"));
-        SearchResponse search_res = client.prepareSearch().setQuery(qb).get();
+        SearchResponse search_res = client.simpleQuerySearch(req.queryParams("q"));
         Map<String, Object> temp_res = new HashMap<String, Object>();
         temp_res.put("resp", search_res);
         temp_res.put("hits", search_res.getHits());

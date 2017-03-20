@@ -1,5 +1,6 @@
 package ca.xqz.tweetmouth;
 
+import ca.xqz.tweetmouth.ESClient;
 import ca.xqz.tweetmouth.Tweet;
 import ca.xqz.tweetmouth.TweetParser;
 
@@ -7,12 +8,10 @@ import java.io.IOException;
 
 import java.util.List;
 
-import org.elasticsearch.client.transport.TransportClient;
-
 class Ingest {
 
     public static void main(String[] args) {
-        TransportClient client = ESUtil.getTransportClient();
+        ESClient client = new ESClient();
         System.out.println("Successfully created a client");
         TweetParser parser = new TweetParser();
 
