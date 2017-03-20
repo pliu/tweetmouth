@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 class Pipeline extends StanfordCoreNLP {
-    private static final String PROPERTIES = TweetAnnotator.getProp() + ", tokenize, pos, lemma, sentiment";
+    private static final String PROPERTIES = TweetAnnotator.getProp() + ", tokenize, ssplit, parse, sentiment";
     private static final List<Consumer<Properties>> ANNOTATOR_SETTERS = new ArrayList<Consumer<Properties>>();
 
     static {

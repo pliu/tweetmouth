@@ -24,6 +24,9 @@ dependencies {
     // The production code uses Guava
     // compile 'com.google.guava:guava:20.0'
 
+    compile 'commons-cli:commons-cli:1.2'
+    compile 'com.google.code.gson:gson:1.7.2'
+
     compile 'com.sparkjava:spark-core:2.5.4'
     compile 'com.sparkjava:spark-template-mustache:2.3'
 
@@ -33,10 +36,9 @@ dependencies {
 
     compile 'org.elasticsearch:elasticsearch:5.2.0'
     compile 'org.elasticsearch.client:transport:5.2.0'
-    compile 'commons-cli:commons-cli:1.2'
-    compile 'com.google.code.gson:gson:1.7.2'
 
     compile 'edu.stanford.nlp:stanford-corenlp:3.7.0'
+    compile 'edu.stanford.nlp:stanford-corenlp:3.7.0:models'
 
     testCompile 'junit:junit:4.12'
 }
