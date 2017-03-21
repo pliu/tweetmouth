@@ -33,9 +33,10 @@ class Pipeline extends StanfordCoreNLP {
         super(props);
     }
 
-    public void annotate(Tweet tweet) {
+    public Annotation annotate(Tweet tweet) {
         Annotation annotation = new Annotation(tweet.getMessage());
         annotate(annotation);
+        return annotation;
     }
 
 }
