@@ -5,7 +5,6 @@ import ca.xqz.tweetmouth.Tweet;
 import ca.xqz.tweetmouth.TweetParser;
 
 import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.JSONOutputter;
 
 import java.io.IOException;
 
@@ -33,7 +32,7 @@ class Ingest {
                     Annotation a = pipeline.annotate(tweet);
                     String s;
                     try {
-                        s = JSONOutputter.jsonPrint(a);
+                        s = TweetJson.toJson(a);
                     } catch (IOException e) {
                         s = null;
                     }

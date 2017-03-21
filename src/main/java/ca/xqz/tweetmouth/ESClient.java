@@ -1,7 +1,5 @@
 package ca.xqz.tweetmouth;
 
-import com.google.gson.Gson;
-
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -32,7 +30,6 @@ class ESClient {
     private final static int DEFAULT_LOAD_SIZE = 1000;
 
     private TransportClient client;
-    private Gson gson;
     private String index;
     private String type;
 
@@ -63,7 +60,6 @@ class ESClient {
     }
 
     private void _baseConstruction() {
-        gson = new Gson();
         IndicesExistsResponse resp = client.admin().indices().exists(new IndicesExistsRequest(index)).actionGet();
         if (resp.isExists())
             return;
@@ -91,7 +87,7 @@ class ESClient {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         for (Tweet tweet : tweets) {
             bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
-                            .source(gson.toJson(tweet)));
+                            .source(TweetJson.toJson(tweet)));
         }
 
         int count = 0;
