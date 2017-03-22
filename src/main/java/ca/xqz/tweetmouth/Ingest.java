@@ -32,7 +32,7 @@ class Ingest {
                     Annotation a = pipeline.annotate(tweet);
                     String s;
                     try {
-                        s = TweetJson.toJson(a);
+                        s = TweetJson.toJson(a, pipeline);
                     } catch (IOException e) {
                         s = null;
                     }
