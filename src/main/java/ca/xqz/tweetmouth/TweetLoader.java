@@ -71,7 +71,11 @@ public class TweetLoader {
             }
             if (tweets.size() <= 0)
                 break;
-            client.loadTweets(tweets);
+            client.loadTweets(tweets.stream()
+                              .map(
+                                  tweet -> {
+                                      return tweet.getMessage();
+                                  }));
             System.out.println("Processed " + loadSize*(iter ++));
          } while (true);
     }

@@ -9,7 +9,7 @@ import edu.stanford.nlp.pipeline.Annotation;
 import java.io.IOException;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class Ingest {
 
@@ -26,25 +26,19 @@ class Ingest {
             throw new RuntimeException(e);
         }
 
-        List<String> annotations = tweets.stream()
-            .map(
-                tweet -> {
-                    Annotation a = pipeline.annotate(tweet);
-                    String s;
-                    try {
-                        s = TweetJson.toJson(a, pipeline);
-                    } catch (IOException e) {
-                        s = null;
-                    }
-                    return s;
-                })
-            .collect(Collectors.toList());
+        Stream<String> annotations = tweets.stream().map(
+            tweet -> {
+                Annotation a = pipeline.annotate(tweet);
+                String s;
+                try {
+                    s = TweetJson.toJson(a, pipeline);
+                } catch (IOException e) {
+                    s = null;
+                }
+                return s;
+            });
 
-        for (int i = 0; i < 10; i++) {
-            System.out.println(annotations.get(i));
-        }
-
-        // client.loadTweets(annotations);
+        client.loadTweets(annotations);
         client.close();
     }
 }

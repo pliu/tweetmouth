@@ -21,6 +21,8 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import java.util.function.Function;
+import java.util.stream.Stream;
 import java.util.List;
 
 class ESClient {
@@ -32,6 +34,21 @@ class ESClient {
     private TransportClient client;
     private String index;
     private String type;
+    private final Function<String, String> MAPPING = type -> {
+        return "{\n" +
+        "    \"" + type + "\": {\n" +
+        "      \"properties\": {\n" +
+        "        \"createdAt\": {\n" +
+        "          \"type\": \"date\",\n" +
+        "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
+        "        },\n" +
+        "        \"geoLocation\": {\n" +
+        "          \"type\": \"geo_point\"\n" +
+        "        }\n" +
+        "      }\n" +
+        "    }\n" +
+        "  }";
+    };
 
     public ESClient() {
         client = getTransportClient(DEFAULT_HOST, DEFAULT_PORT);
@@ -66,29 +83,16 @@ class ESClient {
 
         System.out.println("Index doesn't exist; creating it");
         client.admin().indices().prepareCreate(index)
-            .addMapping(type, "{\n" +
-                        "    \"" + type + "\": {\n" +
-                        "      \"properties\": {\n" +
-                        "        \"createdAt\": {\n" +
-                        "          \"type\": \"date\",\n" +
-                        "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
-                        "        },\n" +
-                        "        \"geoLocation\": {\n" +
-                        "          \"type\": \"geo_point\"\n" +
-                        "        }\n" +
-                        "      }\n" +
-                        "    }\n" +
-                        "  }")
+            .addMapping(type, MAPPING.apply(type))
             .get();
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
-    public void loadTweets(List<Tweet> tweets) {
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-        for (Tweet tweet : tweets) {
-            bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
-                            .source(TweetJson.toJson(tweet)));
-        }
+    public void loadTweets(Stream<String> tweets) {
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        tweets.forEach( tweet -> {
+                bulkRequest.add(new IndexRequest(index, type, tweet));
+            });
 
         int count = 0;
         BulkResponse resp = bulkRequest.get();
