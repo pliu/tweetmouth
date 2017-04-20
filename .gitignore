@@ -1,6 +1,14 @@
+#################
+## IntelliJ
+#################
 .gradle
 /build/
 *~
-TweetsDataset.txt
 .idea/
+out/
+*.iml
+target/
+TweetsDataset.txt
 *.log
+python/
+intermediate/
