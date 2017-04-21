@@ -9,6 +9,7 @@ import java.util.Objects;
 public class GetTweet {
 
     public static String VALID_PATH = "D:\\Programming\\spark_clustering\\intermediate\\valid_tweets";
+
     private final static int NUM_NONDERIVED_FIELDS = 8;
 
     public static JavaPairRDD<Long, String> getAndFilterTweets(JavaRDD<String> lines, boolean save) {
