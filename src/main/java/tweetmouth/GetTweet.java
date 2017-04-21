@@ -6,18 +6,24 @@ import scala.Tuple2;
 
 import java.util.Objects;
 
-public class ParseTweet {
+public class GetTweet {
 
+    public static String VALID_PATH = "D:\\Programming\\spark_clustering\\intermediate\\valid_tweets";
     private final static int NUM_NONDERIVED_FIELDS = 8;
 
-    public static JavaPairRDD<Long, String> parseAndFilterTweets(JavaRDD<String> lines) {
-        return lines.map(str -> str.split("~"))
-                    .map(ParseTweet::getTweet)
-                    .filter(Objects::nonNull)
-                    .mapToPair(tuple -> tuple);
+    public static JavaPairRDD<Long, String> getAndFilterTweets(JavaRDD<String> lines, boolean save) {
+        JavaPairRDD<Long, String> validTweets = lines
+                .map(str -> str.split("~"))
+                .map(GetTweet::parsLine)
+                .filter(Objects::nonNull)
+                .mapToPair(tuple -> tuple);
+        if (save) {
+            validTweets.saveAsObjectFile(VALID_PATH);
+        }
+        return validTweets;
     }
 
-    private static Tuple2<Long, String> getTweet(String[] tokens) {
+    private static Tuple2<Long, String> parsLine(String[] tokens) {
         if (tokens.length != NUM_NONDERIVED_FIELDS) {
             return null;
         }
