@@ -1,14 +1,15 @@
 package tweetmouth;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class TweetElements {
+public class TweetElements implements Serializable{
 
-    public String cleanedTweet;
+    public List<String> tokens;
     public List<String> hashtags;
 
-    public TweetElements(String cleanedTweet, List<String> hashtags) {
-        this.cleanedTweet = cleanedTweet;
+    public TweetElements(List<String> tokens, List<String> hashtags) {
+        this.tokens = tokens;
         this.hashtags = hashtags;
     }
 }
