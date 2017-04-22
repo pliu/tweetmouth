@@ -2,9 +2,11 @@ package tweetmouth;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +17,8 @@ public class TweetPivot {
     public static String FILTERED_PATH = "D:\\Programming\\spark_clustering\\intermediate\\filtered_tweets";
     public static String FEATURES_PATH = "D:\\Programming\\spark_clustering\\intermediate\\features";
 
-    private static int MIN_NUM_TOKENS = 6;
+    private static int MIN_NUM_TOKENS_PER_TWEET = 6;
+    private static int MIN_FEATURE_COUNT_ACROSS_TWEETS = 10;
     private final static Pattern HANDLE_PATTERN = Pattern.compile("@([a-z0-9_]{1,15})$");
     private final static Pattern TRAILING_PUNCTUATION_PATTERN = Pattern.compile("(.*?)\\p{Punct}*$");
 
@@ -34,8 +37,39 @@ public class TweetPivot {
     }
 
     // Generate bi-gram and tri-gram features from cleaned tweets
-    public static JavaRDD<String> parseAndFilterFeatures(JavaPairRDD<Long, TweetElements> tweets) {
-        return null;
+    public static JavaRDD<String> parseAndFilterFeatures(JavaPairRDD<Long, TweetElements> tweets, boolean cached,
+                                                         boolean save) {
+        if (cached) {
+            tweets = JavaPairRDD.fromJavaRDD(App.sc.objectFile(FILTERED_PATH));
+        }
+        JavaRDD<String> features = tweets
+                .flatMapToPair(tweet -> {
+                    HashSet<String> s = new HashSet<>();
+                    for (String hashtag : tweet._2().hashtags) {
+                        s.add(hashtag);
+                    }
+                    List<String> tokens = tweet._2().tokens;
+                    for (int i = 0; i <= tokens.size() - 2; i ++) {
+                        String gram = Utils.listToString(tokens.subList(i, i + 2));
+                        s.add(gram);
+                        if (i <= tokens.size() - 3) {
+                            gram += " " + tokens.get(i + 2);
+                            s.add(gram);
+                        }
+                    }
+                    ArrayList<Tuple2<String, Integer>> a = new ArrayList<>();
+                    for (String f : s) {
+                        a.add(new Tuple2(f, 1));
+                    }
+                    return a.iterator();
+                })
+                .reduceByKey((countA, countB) -> countA + countB)
+                .filter(feature -> feature._2() >= MIN_FEATURE_COUNT_ACROSS_TWEETS)
+                .map(tuple -> tuple._1());
+        if (save) {
+            features.saveAsObjectFile(FEATURES_PATH);
+        }
+        return features;
     }
 
     public static JavaPairRDD<Long, String> generateFeatureVectors(JavaPairRDD<Long, String> tweets) {
@@ -59,6 +93,7 @@ public class TweetPivot {
                 })
 
                 // May want to remove trailing emojis here
+                // May want to remove stop words here
 
                 // Remove mentions, URLs, and lone #s
                 .filter(token -> !(HANDLE_PATTERN.matcher(token).find() || token.startsWith("http") ||
@@ -74,7 +109,7 @@ public class TweetPivot {
                 })
                 .collect(Collectors.toList());
 
-        if (tokens.size() < MIN_NUM_TOKENS) {
+        if (tokens.size() < MIN_NUM_TOKENS_PER_TWEET) {
             return null;
         }
         return new TweetElements(tokens, hashtags);
