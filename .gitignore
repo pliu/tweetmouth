@@ -10,5 +10,6 @@ out/
 target/
 TweetsDataset.txt
 *.log
-python/
 intermediate/
+src/main/python/keys.py*
+src/main/python/python

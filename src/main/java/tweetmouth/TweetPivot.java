@@ -2,6 +2,7 @@ package tweetmouth;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.mllib.linalg.Vector;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class TweetPivot {
     }
 
     // Generate bi-gram and tri-gram features from cleaned tweets
+    // TODO: Need a way to filter out non-informative features
     public static JavaRDD<String> parseAndFilterFeatures(JavaPairRDD<Long, TweetElements> tweets, boolean cached,
                                                          boolean save) {
         if (cached) {
@@ -64,6 +66,8 @@ public class TweetPivot {
                     return a.iterator();
                 })
                 .reduceByKey((countA, countB) -> countA + countB)
+
+                // May want to change the threshold to be dynamic
                 .filter(feature -> feature._2() >= MIN_FEATURE_COUNT_ACROSS_TWEETS)
                 .map(tuple -> tuple._1());
         if (save) {
@@ -72,8 +76,8 @@ public class TweetPivot {
         return features;
     }
 
-    public static JavaPairRDD<Long, String> generateFeatureVectors(JavaPairRDD<Long, String> tweets) {
-        return tweets;
+    public static JavaPairRDD<Long, Vector> generateFeatureVectors(JavaPairRDD<Long, TweetElements> tweets) {
+        return null;
     }
 
     // Token parsing and cleaning, and tweet filtering
@@ -87,13 +91,30 @@ public class TweetPivot {
                     Matcher m = TRAILING_PUNCTUATION_PATTERN.matcher(token.toLowerCase());
                     if (m.find()) {
                         return m.group(1);
-                    } else {
-                        return "";
                     }
+                    return "";
+                })
+
+                // Remove apostrophes
+                .map(token -> token.replace("'", ""))
+
+                // Remove leading quotes
+                .map(token -> {
+                    if (token.startsWith("\"")) {
+                        return token.substring(1);
+                    }
+                    return token;
                 })
 
                 // May want to remove trailing emojis here
-                // May want to remove stop words here
+
+                // Remove stopwords
+                .map(token -> {
+                    if (Utils.STOP_WORDS.contains(token)) {
+                        return "";
+                    }
+                    return token;
+                })
 
                 // Remove mentions, URLs, and lone #s
                 .filter(token -> !(HANDLE_PATTERN.matcher(token).find() || token.startsWith("http") ||
