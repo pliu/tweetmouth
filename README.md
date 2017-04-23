@@ -11,3 +11,17 @@ Gradle - as a build system and also to run the application via `gradle run`
 
 Information retrieval -> Golden Retriever -> original breeder of the Golden retriever: Lord Tweedmouth
 The system deals with tweets so Tweedmouth -> Tweetmouth
+
+# Clustering Spark job
+
+# Java
+
+### Description
+
+### Setup
+
+# Python
+
+### Description
+
+### Setup

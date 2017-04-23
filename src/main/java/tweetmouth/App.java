@@ -4,6 +4,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.SparkConf;
+import org.apache.spark.mllib.linalg.Vector;
 import scala.Tuple2;
 
 import java.util.List;
@@ -21,6 +22,8 @@ public class App {
                 false).cache();
 
         JavaRDD<String> features = TweetPivot.parseAndFilterFeatures(filteredTweets, false, false);
+
+        JavaPairRDD<Long, Vector> featureVectors = TweetPivot.generateFeatureVectors(filteredTweets);
 
         /*List<Tuple2<Long, TweetElements>> tuples = filteredTweets.collect();
         for (int i = 0; i < 100; i ++) {
