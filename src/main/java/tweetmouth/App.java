@@ -5,6 +5,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.SparkConf;
 import org.apache.spark.mllib.linalg.Vector;
+import scala.Tuple2;
 
 import java.util.Map;
 
@@ -22,7 +23,7 @@ public class App {
 
         JavaPairRDD<String, Integer> features = TweetPivot.parseAndFilterFeatures(filteredTweets, true, true);
 
-        boolean featureVectorsCached = false;
+        boolean featureVectorsCached = true;
         long numTweets = 0;
         Map<String, Integer> enumeratedFeatures = null;
         Map<String, Integer> documentFeatureCounts = null;
@@ -31,15 +32,33 @@ public class App {
             features = features.cache();
             numTweets = filteredTweets.count();
             enumeratedFeatures = Utils.enumerate(features.map(tuple -> tuple._1()).collect());
-            documentFeatureCounts = features.collectAsMap();
+            documentFeatureCounts = Utils.getMap(features.collect());
         }
 
         JavaPairRDD<Long, Vector> featureVectors = TweetPivot.generateFeatureVectors(filteredTweets,
-                enumeratedFeatures, documentFeatureCounts, numTweets, featureVectorsCached, false);
+                enumeratedFeatures, documentFeatureCounts, numTweets, featureVectorsCached, true);
 
-        for (String s : enumeratedFeatures.keySet()) {
-            System.out.println(s + " " + enumeratedFeatures.get(s));
+        Clustering.cluster(featureVectors, 5);
+
+        /*System.out.println(validTweets.count());
+        System.out.println(numTweets);
+        System.out.println(features.count());
+
+        for (Tuple2<String, Integer> t : features.takeSample(false, 100)) {
+            System.out.println(t._1() + ": " + t._2());
         }
-        System.out.println("Features: " + enumeratedFeatures.size());
+
+        for (Map.Entry<String, Integer> e : enumeratedFeatures.entrySet()) {
+            System.out.println(e.getKey() + ": " + e.getValue());
+        }
+
+        for (Map.Entry<String, Integer> e : documentFeatureCounts.entrySet()) {
+            System.out.println(e.getKey() + ": " + e.getValue());
+        }
+
+        for (Tuple2<Long, Vector> t : featureVectors.takeSample(false, 10)) {
+            System.out.println(t._1() + ": " + t._2().toJson());
+        }
+        System.out.println(featureVectors.count());*/
     }
 }

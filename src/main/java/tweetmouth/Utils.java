@@ -1,14 +1,19 @@
 package tweetmouth;
 
+import scala.Tuple2;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Utils {
 
-    public static HashSet<String> STOP_WORDS = new HashSet<>(Arrays.asList("a", "as", "able", "about",
+    public static Set<String> STOP_WORDS = new HashSet<>(Arrays.asList("a", "as", "able", "about",
             "above", "according", "accordingly", "across", "actually", "after", "afterwards", "again", "against",
             "aint", "all", "allow", "allows", "almost", "alone", "along", "already", "also", "although", "always",
             "am", "among", "amongst", "an", "and", "another", "any", "anybody", "anyhow", "anyone", "anything",
@@ -71,11 +76,19 @@ public class Utils {
     }
 
     public static <E> Map<E, Integer> enumerate(List<E> list) {
-        HashMap<E, Integer> enumerated = new HashMap<>();
+        Map<E, Integer> enumerated = new HashMap<>();
         int count = 0;
         for (E s : list) {
             enumerated.put(s, count ++);
         }
         return enumerated;
+    }
+
+    public static <S, T> Map<S, T> getMap(List<Tuple2<S, T>> tuples) {
+        Map<S, T> map = new HashMap<>();
+        for (Tuple2<S, T> t : tuples) {
+            map.put(t._1(), t._2());
+        }
+        return map;
     }
 }
