@@ -1,12 +1,14 @@
 package tweetmouth;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
 
-    public static HashSet<String> STOP_WORDS = new HashSet<>(Arrays.asList(new String[] {"a", "as", "able", "about",
+    public static HashSet<String> STOP_WORDS = new HashSet<>(Arrays.asList("a", "as", "able", "about",
             "above", "according", "accordingly", "across", "actually", "after", "afterwards", "again", "against",
             "aint", "all", "allow", "allows", "almost", "alone", "along", "already", "also", "although", "always",
             "am", "among", "amongst", "an", "and", "another", "any", "anybody", "anyhow", "anyone", "anything",
@@ -55,7 +57,7 @@ public class Utils {
             "whenever", "where", "wheres", "whereafter", "whereas", "whereby", "wherein", "whereupon", "wherever",
             "whether", "which", "while", "whither", "who", "whos", "whoever", "whole", "whom", "whose", "why", "will",
             "willing", "wish", "with", "within", "without", "wont", "wonder", "would", "would", "wouldnt", "yes", "yet",
-            "you", "youd", "youll", "youre", "youve", "your", "yours", "yourself", "yourselves", "zero"}));
+            "you", "youd", "youll", "youre", "youve", "your", "yours", "yourself", "yourselves", "zero"));
 
     public static String listToString(List<String> list) {
         StringBuilder sb = new StringBuilder();
@@ -66,5 +68,14 @@ public class Utils {
             }
         }
         return sb.toString();
+    }
+
+    public static <E> Map<E, Integer> enumerate(List<E> list) {
+        HashMap<E, Integer> enumerated = new HashMap<>();
+        int count = 0;
+        for (E s : list) {
+            enumerated.put(s, count ++);
+        }
+        return enumerated;
     }
 }
