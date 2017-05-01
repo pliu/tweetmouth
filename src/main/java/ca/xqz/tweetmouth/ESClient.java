@@ -88,7 +88,7 @@ class ESClient {
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
-    public void loadTweets(Stream<Tweet> tweets) {
+    public void loadTweets(Stream<Tweet> tweets) throws Exception {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         tweets.forEach( tweet -> {
                 bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
@@ -97,6 +97,10 @@ class ESClient {
 
         int count = 0;
         BulkResponse resp = bulkRequest.get();
+        while (resp == null) {
+            Thread.sleep(1000);
+            resp = bulkRequest.get();
+        }
         if (resp.hasFailures()) {
             for (BulkItemResponse r : resp.getItems()) {
                 if (r.isFailed()) {
