@@ -22,8 +22,10 @@ public class TweetPivot {
     private final static String VECTOR_PATH = "D:\\Programming\\spark_clustering\\intermediate\\vectors";
     private final static int MIN_NUM_TOKENS_PER_TWEET = 6;
     private final static int MIN_FEATURE_COUNT_ACROSS_TWEETS = 10;
+    private final static int MIN_FEATURES_PER_TWEET = 5;
     private final static Pattern HANDLE_PATTERN = Pattern.compile("@([a-z0-9_]{1,15})$");
     private final static Pattern TRAILING_PUNCTUATION_PATTERN = Pattern.compile("(.*?)\\p{Punct}*$");
+    private final static Pattern LEADING_PUNCTUATION_PATTERN = Pattern.compile("^[\\p{Punct}&&[^#]]*(.*)");
 
     public static JavaPairRDD<Long, TweetElements> parseAndFilterTweets(JavaPairRDD<Long, String> tweets,
                                                                         boolean cached, boolean save) {
@@ -77,12 +79,19 @@ public class TweetPivot {
                     Set<String> s = getFeatures(tweet);
                     ArrayList<Tuple2<Integer, Double>> tuples = new ArrayList<>();
                     for (String f : s) {
-                        int index = enumeratedFeatures.get(f);
+                        Integer index = enumeratedFeatures.get(f);
+                        if (index == null) {
+                            continue;
+                        }
                         double value = 1.0 / (Math.log(numTweets / documentFeatureCounts.get(f)));
                         tuples.add(new Tuple2<>(index, value));
                     }
+                    if (tuples.size() < MIN_FEATURES_PER_TWEET) {
+                        return new Tuple2<>(tweet._1(), null);
+                    }
                     return new Tuple2<>(tweet._1(), Vectors.sparse(enumeratedFeatures.size(), tuples));
-                });
+                })
+                .filter(tuple -> tuple._2() != null);
         if (save) {
             vectors.saveAsObjectFile(VECTOR_PATH);
         }
@@ -95,7 +104,7 @@ public class TweetPivot {
         List<String> dirtyTokens = Arrays.asList(tweet.split("\\s+"));
         List<String> tokens = dirtyTokens.stream()
 
-                // Remove trailing punctuation
+                // Remove trailing punctuation and lowercases the token for subsequent steps
                 .map(token -> {
                     Matcher m = TRAILING_PUNCTUATION_PATTERN.matcher(token.toLowerCase());
                     if (m.find()) {
@@ -107,15 +116,16 @@ public class TweetPivot {
                 // Remove apostrophes
                 .map(token -> token.replace("'", ""))
 
-                // Remove leading quotes
+                // Remove leading punctuation except #s
                 .map(token -> {
-                    if (token.startsWith("\"")) {
-                        return token.substring(1);
+                    Matcher m = LEADING_PUNCTUATION_PATTERN.matcher(token);
+                    if (m.find()) {
+                        return m.group(1);
                     }
-                    return token;
+                    return "";
                 })
 
-                // May want to remove trailing emojis here
+                // May want to remove emojis here
 
                 // Remove stopwords
                 .map(token -> {

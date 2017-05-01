@@ -36,7 +36,9 @@ public class GetTweet {
         } catch (NumberFormatException e) {
             return null;
         }
-        if (tokens[3].equals("null") || tokens[3].equals("")) {
+        // A tweet starting with RT means it is a retweet
+        if (tokens[3].equals("null") || tokens[3].equals("") || tokens[3].substring(0, 2).toLowerCase()
+                .equals( "rt")) {
             return null;
         }
         String message = tokens[3];
