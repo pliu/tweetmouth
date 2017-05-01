@@ -21,18 +21,6 @@ public class TweetParser {
         this.input = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
     }
 
-    public List<Tweet> getParsedTweets() throws IOException {
-        List<Tweet> tweets = new ArrayList<Tweet>();
-        do {
-            List<Tweet> ofSomeTweets = getParsedTweets(ESClient
-                                                       .getDefaultLoadSize());
-            if (ofSomeTweets.size() == 0)
-                break;
-            tweets.addAll(ofSomeTweets);
-        } while(true);
-        return tweets;
-    }
-
     // TODO: Handle exceptions if we hook this up to the Twitter stream
     public List<Tweet> getParsedTweets(int num) throws IOException {
         ArrayList<Tweet> parsedTweets = new ArrayList<>();
