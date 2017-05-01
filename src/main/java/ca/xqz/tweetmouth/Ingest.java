@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 class Ingest {
-    private static int PARSED_TWEET_BUF_SIZE = 100;
+    private static int PARSED_TWEET_BUF_SIZE = 1000;
 
-    private static boolean ingestTweets(TweetParser parser, Pipeline pipeline, ESClient client) {
+    private static boolean ingestTweets(TweetParser parser, Pipeline pipeline, ESClient client) throws Exception {
         List<Tweet> tweets;
         boolean moreTweets;
 
@@ -40,12 +40,16 @@ class Ingest {
         return moreTweets;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         TweetParser parser = new TweetParser();
-        ESClient client = new ESClient();
+        ESClient client = new ESClient("cpserver.eastus.cloudapp.azure.com", 5000, "tweet_index",
+                "tweet");
         final Pipeline pipeline = Pipeline.getPipeline();
 
-        while (ingestTweets(parser, pipeline, client));
+        int counter = 0;
+        while (ingestTweets(parser, pipeline, client)) {
+            System.out.println("Checkpoint: " + counter ++);
+        };
         client.close();
     }
 }
