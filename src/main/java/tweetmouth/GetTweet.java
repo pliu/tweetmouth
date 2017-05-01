@@ -8,11 +8,13 @@ import java.util.Objects;
 
 public class GetTweet {
 
-    public static String VALID_PATH = "D:\\Programming\\spark_clustering\\intermediate\\valid_tweets";
-
+    private final static String VALID_PATH = "D:\\Programming\\spark_clustering\\intermediate\\valid_tweets";
     private final static int NUM_NONDERIVED_FIELDS = 8;
 
-    public static JavaPairRDD<Long, String> getAndFilterTweets(JavaRDD<String> lines, boolean save) {
+    public static JavaPairRDD<Long, String> getAndFilterTweets(JavaRDD<String> lines, boolean cached, boolean save) {
+        if (cached) {
+            return JavaPairRDD.fromJavaRDD(App.sc.objectFile(VALID_PATH));
+        }
         JavaPairRDD<Long, String> validTweets = lines
                 .map(str -> str.split("~"))
                 .map(GetTweet::parsLine)

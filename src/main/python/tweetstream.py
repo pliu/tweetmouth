@@ -45,7 +45,7 @@ def fetchsamples(num_samples=100000):
             j = json.loads(line.strip())
         except ValueError:
             continue
-        if 'text' in j and is_ascii(j['text']) and 'retweeted' in j and not j['retweeted']:
+        if 'text' in j and is_ascii(j['text']) and j['text'][:2] != 'RT':
             print j['id'], j['text'].encode('utf-8')
             count += 1
             if count >= num_samples:

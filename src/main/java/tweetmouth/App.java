@@ -5,9 +5,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.SparkConf;
 import org.apache.spark.mllib.linalg.Vector;
-import scala.Tuple2;
 
-import java.util.List;
+import java.util.Map;
 
 public class App {
 
@@ -16,28 +15,31 @@ public class App {
     public static void main(String[] args) {
         JavaRDD<String> lines = sc.textFile("D:\\Programming\\spark_clustering\\TweetsDataset.txt");
 
-        JavaPairRDD<Long, String> validTweets = GetTweet.getAndFilterTweets(lines, false);
+        JavaPairRDD<Long, String> validTweets = GetTweet.getAndFilterTweets(lines, true, true);
 
         JavaPairRDD<Long, TweetElements> filteredTweets = TweetPivot.parseAndFilterTweets(validTweets, true,
-                false).cache();
+                true);
 
-        JavaRDD<String> features = TweetPivot.parseAndFilterFeatures(filteredTweets, false, false);
+        JavaPairRDD<String, Integer> features = TweetPivot.parseAndFilterFeatures(filteredTweets, true, true);
 
-        JavaPairRDD<Long, Vector> featureVectors = TweetPivot.generateFeatureVectors(filteredTweets);
-
-        /*List<Tuple2<Long, TweetElements>> tuples = filteredTweets.collect();
-        for (int i = 0; i < 100; i ++) {
-            System.out.print(tuples.get(i)._1() + ": ");
-            for (String token : tuples.get(i)._2().tokens) {
-                System.out.print(token + " ");
-            }
-            System.out.println();
-        }*/
-
-        List<String> tuples = features.collect();
-        for (int i = 0; i < 100; i ++) {
-            System.out.println(tuples.get(i));
+        boolean featureVectorsCached = false;
+        long numTweets = 0;
+        Map<String, Integer> enumeratedFeatures = null;
+        Map<String, Integer> documentFeatureCounts = null;
+        if (!featureVectorsCached) {
+            filteredTweets = filteredTweets.cache();
+            features = features.cache();
+            numTweets = filteredTweets.count();
+            enumeratedFeatures = Utils.enumerate(features.map(tuple -> tuple._1()).collect());
+            documentFeatureCounts = features.collectAsMap();
         }
-        System.out.println("Features: " + tuples.size());
+
+        JavaPairRDD<Long, Vector> featureVectors = TweetPivot.generateFeatureVectors(filteredTweets,
+                enumeratedFeatures, documentFeatureCounts, numTweets, featureVectorsCached, false);
+
+        for (String s : enumeratedFeatures.keySet()) {
+            System.out.println(s + " " + enumeratedFeatures.get(s));
+        }
+        System.out.println("Features: " + enumeratedFeatures.size());
     }
 }
