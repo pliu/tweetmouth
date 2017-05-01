@@ -29,7 +29,6 @@ class ESClient {
 
     private final static String DEFAULT_HOST = "127.0.0.1";
     private final static int DEFAULT_PORT = 9300;
-    private final static int DEFAULT_LOAD_SIZE = 1000;
     private final static Gson gson = new Gson();
 
     private TransportClient client;
@@ -88,7 +87,7 @@ class ESClient {
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
-    public void loadTweets(Stream<Tweet> tweets) throws Exception {
+    public void loadTweets(Stream<Tweet> tweets) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         tweets.forEach( tweet -> {
                 bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
@@ -97,10 +96,6 @@ class ESClient {
 
         int count = 0;
         BulkResponse resp = bulkRequest.get();
-        while (resp == null) {
-            Thread.sleep(1000);
-            resp = bulkRequest.get();
-        }
         if (resp.hasFailures()) {
             for (BulkItemResponse r : resp.getItems()) {
                 if (r.isFailed()) {
@@ -119,17 +114,4 @@ class ESClient {
     public void close() {
         client.close();
     }
-
-    public static int getDefaultLoadSize() {
-        return DEFAULT_LOAD_SIZE;
-    }
-
-    public static String getDefaultHost() {
-        return DEFAULT_HOST;
-    }
-
-    public static int getDefaultPort() {
-        return DEFAULT_PORT;
-    }
-
 }
