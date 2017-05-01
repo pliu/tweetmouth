@@ -1,8 +1,35 @@
-<h1>Search Results</h1>
-Total Hits: {{total_hits}}
-{{#hits}}
-{{explanation()}}
-{{/hits}}
-{{^hits}}
-No hits :( {{suggest}}
-{{/hits}}
+<html>
+  <head></head>
+  <body>
+    <h1>Search Results</h1>
+    Total Hits: {{total_hits}}
+    <div id="hits"></div>
+    {{^hits}}
+    <div>
+      No hits :( {{suggest}}
+    </div>
+    {{/hits}}
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+    <script type="text/javascript">
+      function displayHit(hit) {
+	  var hitDiv = document.createElement("div");
+	  var tweetFrame = document.createElement("div");
+          var callbackName = "jsonp_callback_" + Math.round(1000000 * Math.random());
+	  var script = document.createElement("script");
+	  window[callbackName] = function(data) {
+	      delete window[callbackName];
+	      document.body.removeChild(script);
+	      tweetFrame.innerHTML = data["html"];
+	  }
+	  script.src = "https://publish.twitter.com/oembed?url=https%3A%2F%2Ftwitter.com%2F" 
+	      + hit["handle"] + "%2Fstatus%2F" + hit["id"] + "&callback=" + callbackName;
+	  document.body.appendChild(script);
+	  hitDiv.appendChild(tweetFrame);
+	  document.getElementById("hits").appendChild(hitDiv);
+      }
+    {{#hits}}
+      displayHit(JSON.parse('{{{.}}}'));
+    {{/hits}}
+    </script>
+  </body>
+</html>
