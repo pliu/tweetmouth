@@ -1,5 +1,6 @@
 package ca.xqz.tweetmouth;
 
+import com.google.gson.Gson;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -23,19 +24,19 @@ import java.net.UnknownHostException;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
-import java.util.List;
 
 class ESClient {
 
     private final static String DEFAULT_HOST = "127.0.0.1";
     private final static int DEFAULT_PORT = 9300;
     private final static int DEFAULT_LOAD_SIZE = 1000;
+    private final static Gson gson = new Gson();
 
     private TransportClient client;
     private String index;
     private String type;
-    private final Function<String, String> MAPPING = type -> {
-        return "{\n" +
+    private final Function<String, String> MAPPING = type ->
+        "{\n" +
         "    \"" + type + "\": {\n" +
         "      \"properties\": {\n" +
         "        \"createdAt\": {\n" +
@@ -48,7 +49,6 @@ class ESClient {
         "      }\n" +
         "    }\n" +
         "  }";
-    };
 
     public ESClient() {
         client = getTransportClient(DEFAULT_HOST, DEFAULT_PORT);
@@ -88,10 +88,11 @@ class ESClient {
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
-    public void loadTweets(Stream<String> tweets) {
+    public void loadTweets(Stream<Tweet> tweets) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         tweets.forEach( tweet -> {
-                bulkRequest.add(new IndexRequest(index, type, tweet));
+                bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
+                        .source(gson.toJson(tweet)));
             });
 
         int count = 0;

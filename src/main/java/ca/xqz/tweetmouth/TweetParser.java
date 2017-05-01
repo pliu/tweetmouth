@@ -59,6 +59,7 @@ public class TweetParser {
         return Tweet.getTweet(tokens);
     }
 
+    // Simply for testing purposes
     public static void main(String[] args) {
         TweetParser parser = new TweetParser();
         List<Tweet> parsedTweets;

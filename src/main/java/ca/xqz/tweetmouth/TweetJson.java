@@ -1,7 +1,5 @@
 package ca.xqz.tweetmouth;
 
-import com.google.gson.Gson;
-
 import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.io.StringOutputStream;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -25,9 +23,7 @@ import java.util.List;
 
 class TweetJson extends JSONOutputter {
 
-    private static Gson gson = new Gson();
-
-    private final Function<CoreLabel, Consumer<Writer>> token_map = token -> (Consumer<Writer>) (Writer json) -> {
+    /*private final Function<CoreLabel, Consumer<Writer>> token_map = token -> (Consumer<Writer>) (Writer json) -> {
         json.set("index", token.index());
         json.set("word", token.word());
         json.set("originalText", token.originalText());
@@ -84,10 +80,6 @@ class TweetJson extends JSONOutputter {
         jw.flush();
     }
 
-    public static String toJson(Tweet tweet) {
-        return gson.toJson(tweet);
-    }
-
     public static String toJson(Annotation a, Pipeline p) throws IOException {
         Options o = getOptions(p);
         o.pretty = false; // Collapse whitespace
@@ -95,6 +87,15 @@ class TweetJson extends JSONOutputter {
         StringOutputStream s = new StringOutputStream();
         new TweetJson().print(a, s, o);
         return s.toString();
+    }*/
+
+    public static void addAnnotation(Tweet t, Annotation a) throws IOException {
+        List<CoreMap> sentences = a.get(CoreAnnotations.SentencesAnnotation.class);
+        Tree sentimentTree = sentences.get(0).get(SentimentCoreAnnotations.SentimentAnnotatedTree.class);
+        if (sentimentTree != null) {
+            t.setSentimentValue(RNNCoreAnnotations.getPredictedClass(sentimentTree));
+            t.setSentiment(sentences.get(0).get(SentimentCoreAnnotations.SentimentClass.class).replaceAll(" ", ""));
+        }
     }
 
 }

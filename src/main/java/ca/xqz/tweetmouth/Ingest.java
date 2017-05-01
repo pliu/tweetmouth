@@ -20,22 +20,20 @@ class Ingest {
 
         List<Tweet> tweets;
         try {
-            tweets = parser.getParsedTweets(100);
+            tweets = parser.getParsedTweets(10000);
         } catch (IOException e) {
             System.out.println("IO Exception in parsing tweets");
             throw new RuntimeException(e);
         }
 
-        Stream<String> annotations = tweets.stream().map(
+        Stream<Tweet> annotations = tweets.parallelStream().map(
             tweet -> {
                 Annotation a = pipeline.annotate(tweet);
-                String s;
                 try {
-                    s = TweetJson.toJson(a, pipeline);
+                    TweetJson.addAnnotation(tweet, a);
                 } catch (IOException e) {
-                    s = null;
                 }
-                return s;
+                return tweet;
             });
 
         client.loadTweets(annotations);

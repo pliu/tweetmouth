@@ -2,3 +2,5 @@
 /build/
 *~
 TweetsDataset.txt
+.idea/
+*.log

@@ -39,6 +39,8 @@ public class Tweet {
     private long userId;
     private List<String> references = null;
     private List<String> hashtags = null;
+    private int sentimentValue;
+    private String sentiment;
 
     public static Tweet getTweet(List<String> tokens) {
         if (tokens.size() != Tweet.NUM_NONDERIVED_FIELDS) {
@@ -96,6 +98,14 @@ public class Tweet {
 
     public long getId() {
         return id;
+    }
+
+    public void setSentiment(String sentiment) {
+        this.sentiment = sentiment;
+    }
+
+    public void setSentimentValue(int sentimentValue) {
+        this.sentimentValue = sentimentValue;
     }
 
     private void parseMessage() {
@@ -169,6 +179,10 @@ public class Tweet {
             sb.append("\n");
         }
         sb.append("userId: " + userId + "\n");
+        if (sentimentValue != 0 && sentiment != null) {
+            sb.append("sentimentValue: " + sentimentValue + "\n");
+            sb.append("sentiment: " + sentiment + "\n");
+        }
         return sb.toString();
     }
 }
