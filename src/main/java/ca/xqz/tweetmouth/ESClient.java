@@ -106,9 +106,9 @@ class ESClient {
         }
     }
 
-    public SearchResponse simpleQuerySearch(String q) {
-        QueryBuilder qb = QueryBuilders.simpleQueryStringQuery(q);
-        return client.prepareSearch().setQuery(qb).get();
+    public SearchResponse query(String q) {
+        QueryBuilder qb = QueryBuilders.fuzzyQuery("message", q);
+        return client.prepareSearch().setQuery(qb).setSize(10).get();
     }
 
     public void close() {
