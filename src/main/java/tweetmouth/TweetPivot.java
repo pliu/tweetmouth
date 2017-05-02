@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,8 +22,9 @@ public class TweetPivot {
     private final static String FEATURES_PATH = "D:\\Programming\\spark_clustering\\intermediate\\features";
     private final static String VECTOR_PATH = "D:\\Programming\\spark_clustering\\intermediate\\vectors";
     private final static int MIN_NUM_TOKENS_PER_TWEET = 6;
-    private final static int MIN_FEATURE_COUNT_ACROSS_TWEETS = 10;
-    private final static int MIN_FEATURES_PER_TWEET = 5;
+    private final static int MIN_FEATURES_PER_TWEET = 3;
+    private final static Function<Long, Long> MIN_FEATURE_COUNT_ACROSS_TWEETS_FUNC = numTweets ->
+            (long)Math.max(10L, numTweets * 0.0005);
     private final static Pattern HANDLE_PATTERN = Pattern.compile("@([a-z0-9_]{1,15})$");
     private final static Pattern TRAILING_PUNCTUATION_PATTERN = Pattern.compile("(.*?)\\p{Punct}*$");
     private final static Pattern LEADING_PUNCTUATION_PATTERN = Pattern.compile("^[\\p{Punct}&&[^#]]*(.*)");
@@ -44,22 +46,21 @@ public class TweetPivot {
     // Generate bi-gram and tri-gram features from cleaned tweets
     // TODO: Need a way to filter out non-informative features
     public static JavaPairRDD<String, Integer> parseAndFilterFeatures(JavaPairRDD<Long, TweetElements> tweets,
-                                                                      boolean cached, boolean save) {
+                                                                      boolean cached, boolean save, long numTweets) {
         if (cached) {
             return JavaPairRDD.fromJavaRDD(App.sc.objectFile(FEATURES_PATH));
         }
+        long MIN_FEATURE_COUNT_ACROSS_TWEETS = MIN_FEATURE_COUNT_ACROSS_TWEETS_FUNC.apply(numTweets);
         JavaPairRDD<String, Integer> features = tweets
                 .flatMapToPair(tweet -> {
                     Set<String> s = getFeatures(tweet);
                     ArrayList<Tuple2<String, Integer>> a = new ArrayList<>();
                     for (String f : s) {
-                        a.add(new Tuple2(f, 1));
+                        a.add(new Tuple2<>(f, 1));
                     }
                     return a.iterator();
                 })
                 .reduceByKey((countA, countB) -> countA + countB)
-
-                // May want to change the threshold to be dynamic
                 .filter(feature -> feature._2() >= MIN_FEATURE_COUNT_ACROSS_TWEETS);
         if (save) {
             features.saveAsObjectFile(FEATURES_PATH);
@@ -125,7 +126,7 @@ public class TweetPivot {
                     return "";
                 })
 
-                // May want to remove emojis here
+                // TODO: Remove emojis here
 
                 // Remove stopwords
                 .map(token -> {
@@ -158,11 +159,9 @@ public class TweetPivot {
     // Could change Set to be a Map of counts if a tweet can contribute more than one of any feature
     private static Set<String> getFeatures(Tuple2<Long, TweetElements> tweet) {
         HashSet<String> s = new HashSet<>();
-        for (String hashtag : tweet._2().hashtags) {
-            s.add(hashtag);
-        }
+        // s.addAll(tweet._2().hashtags);  // Using hashtags as features results in a lot of features such as "anger"
         List<String> tokens = tweet._2().tokens;
-        for (int i = 0; i <= tokens.size() - 2; i ++) {
+        for (int i = 0; i <= tokens.size() - 2; i++) {
             String gram = Utils.listToString(tokens.subList(i, i + 2));
             s.add(gram);
             if (i <= tokens.size() - 3) {

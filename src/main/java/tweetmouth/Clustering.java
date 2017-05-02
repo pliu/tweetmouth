@@ -8,6 +8,11 @@ import org.apache.spark.mllib.linalg.Vector;
 
 public class Clustering {
 
+    public static final void findK(JavaPairRDD<Long, Vector> labelledVectors) {
+        JavaRDD<Vector> vectors = labelledVectors.map(tuple -> tuple._2()).cache();
+
+    }
+
     public static final void cluster(JavaPairRDD<Long, Vector> vectors, int clusters) {
         BisectingKMeans bkm = new BisectingKMeans().setK(clusters);
         JavaRDD<Vector> v = vectors.map(tuple -> tuple._2());
