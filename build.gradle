@@ -21,6 +21,20 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+sourceSets {
+    main {
+        java {
+            exclude '**/App.java'
+            exclude '**/Clustering.java'
+            exclude '**/FeaturePivot.java'
+            exclude '**/GetTweet.java'
+            exclude '**/TweetElements.java'
+            exclude '**/TweetPivot.java'
+            exclude '**/Utils.java'
+        }
+    }
+}
+
 dependencies {
     // The production code uses Guava
     // compile 'com.google.guava:guava:20.0'
