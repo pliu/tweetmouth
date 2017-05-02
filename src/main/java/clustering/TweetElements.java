@@ -1,4 +1,4 @@
-package tweetmouth;
+package clustering;
 
 import java.io.Serializable;
 import java.util.List;

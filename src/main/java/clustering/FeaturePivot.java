@@ -1,4 +1,4 @@
-package tweetmouth;
+package clustering;
 
 public class FeaturePivot {
 }

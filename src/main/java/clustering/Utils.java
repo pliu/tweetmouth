@@ -1,4 +1,4 @@
-package tweetmouth;
+package clustering;
 
 import scala.Tuple2;
 

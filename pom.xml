@@ -62,6 +62,9 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <excludes>
+                        <exclude>**/ca/xqz/tweetmouth/*.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

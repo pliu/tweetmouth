@@ -1,4 +1,4 @@
-package tweetmouth;
+package clustering;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
