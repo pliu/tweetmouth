@@ -1,13 +1,9 @@
 package ca.xqz.tweetmouth;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
-
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +21,7 @@ public class TweetParser {
     public List<Tweet> getParsedTweets(int num) throws IOException {
         ArrayList<Tweet> parsedTweets = new ArrayList<>();
         String line = input.readLine();
-        for (int i = 0; line != null && i < num; i ++) {
+        for (int i = 0; line != null && i < num; i++) {
             while (line != null) {
                 Tweet parsedTweet = getParsedTweet(line);
                 if (parsedTweet != null) {
@@ -57,7 +53,7 @@ public class TweetParser {
             System.err.println("Lol error:" + e);
             return;
         }
-        for (Tweet tweet: parsedTweets) {
+        for (Tweet tweet : parsedTweets) {
             System.out.println(tweet);
         }
     }

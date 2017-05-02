@@ -2,18 +2,16 @@ package ca.xqz.tweetmouth;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
+import spark.ModelAndView;
+import spark.Spark;
+import spark.TemplateEngine;
+import spark.TemplateViewRoute;
+import spark.template.mustache.MustacheTemplateEngine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import spark.ModelAndView;
-import spark.Spark;
-import spark.TemplateEngine;
-import spark.TemplateViewRoute;
-
-import spark.template.mustache.MustacheTemplateEngine;
 
 class WebServer {
     private static ESClient client = new ESClient();
@@ -39,8 +37,8 @@ class WebServer {
     public static void main(String[] args) {
         Spark.staticFileLocation("/public");
         Spark.before((req, resp) -> {
-                resp.header("Access-Control-Allow-Origin", "*");
-            });
+            resp.header("Access-Control-Allow-Origin", "*");
+        });
         Spark.get("/search", SEARCH, TEMPLATE);
     }
 

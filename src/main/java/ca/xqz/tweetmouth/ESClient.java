@@ -8,20 +8,15 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
-
 import org.elasticsearch.client.transport.TransportClient;
-
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -35,19 +30,19 @@ class ESClient {
     private String index;
     private String type;
     private final Function<String, String> MAPPING = type ->
-        "{\n" +
-        "    \"" + type + "\": {\n" +
-        "      \"properties\": {\n" +
-        "        \"createdAt\": {\n" +
-        "          \"type\": \"date\",\n" +
-        "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
-        "        },\n" +
-        "        \"geoLocation\": {\n" +
-        "          \"type\": \"geo_point\"\n" +
-        "        }\n" +
-        "      }\n" +
-        "    }\n" +
-        "  }";
+            "{\n" +
+                    "    \"" + type + "\": {\n" +
+                    "      \"properties\": {\n" +
+                    "        \"createdAt\": {\n" +
+                    "          \"type\": \"date\",\n" +
+                    "          \"format\": \"" + Tweet.DATE_FORMAT + "\"" +
+                    "        },\n" +
+                    "        \"geoLocation\": {\n" +
+                    "          \"type\": \"geo_point\"\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }";
 
     public ESClient() {
         client = getTransportClient(DEFAULT_HOST, DEFAULT_PORT);
@@ -72,7 +67,7 @@ class ESClient {
         }
 
         return new PreBuiltTransportClient(Settings.EMPTY)
-            .addTransportAddress(new InetSocketTransportAddress(inetAddr, port));
+                .addTransportAddress(new InetSocketTransportAddress(inetAddr, port));
     }
 
     private void _baseConstruction() {
@@ -82,24 +77,24 @@ class ESClient {
 
         System.out.println("Index doesn't exist; creating it");
         client.admin().indices().prepareCreate(index)
-            .addMapping(type, MAPPING.apply(type))
-            .get();
+                .addMapping(type, MAPPING.apply(type))
+                .get();
     }
 
     // TODO: Add buffering if we hook this up to the Twitter stream
     public void loadTweets(Stream<Tweet> tweets) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        tweets.forEach( tweet -> {
-                bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
-                        .source(gson.toJson(tweet)));
-            });
+        tweets.forEach(tweet -> {
+            bulkRequest.add(new IndexRequest(index, type, Long.toString(tweet.getId()))
+                    .source(gson.toJson(tweet)));
+        });
 
         int count = 0;
         BulkResponse resp = bulkRequest.get();
         if (resp.hasFailures()) {
             for (BulkItemResponse r : resp.getItems()) {
                 if (r.isFailed()) {
-                    count ++;
+                    count++;
                 }
             }
             System.out.println(count + " failed");

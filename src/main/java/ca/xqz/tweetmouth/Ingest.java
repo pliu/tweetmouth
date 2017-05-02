@@ -1,13 +1,8 @@
 package ca.xqz.tweetmouth;
 
-import ca.xqz.tweetmouth.ESClient;
-import ca.xqz.tweetmouth.Tweet;
-import ca.xqz.tweetmouth.TweetParser;
-
 import edu.stanford.nlp.pipeline.Annotation;
 
 import java.io.IOException;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +28,8 @@ class Ingest {
                         Annotation a = pipeline.annotate(tweet);
                         try {
                             TweetJson.addAnnotation(tweet, a);
-                        } catch (IOException e) {}
+                        } catch (IOException e) {
+                        }
                         return tweet;
                     })
                     .collect(Collectors.toList());
@@ -51,8 +47,9 @@ class Ingest {
 
         int counter = 0;
         while (ingestTweets(parser, pipeline, client, counter)) {
-            System.out.println("Checkpoint: " + counter ++);
-        };
+            System.out.println("Checkpoint: " + counter++);
+        }
+        ;
         client.close();
     }
 }
