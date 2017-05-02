@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 class WebServer {
-    private static ESClient client = new ESClient();
+    private static ESClient client = new ESClient("cpserver.eastus.cloudapp.azure.com", 5000, "tweet_index", "tweet");
 
     private final static TemplateEngine TEMPLATE = new MustacheTemplateEngine();
     private final static TemplateViewRoute SEARCH = (req, res) -> {
