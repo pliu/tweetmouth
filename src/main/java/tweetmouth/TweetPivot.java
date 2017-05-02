@@ -44,9 +44,8 @@ public class TweetPivot {
     }
 
     // Generate bi-gram and tri-gram features from cleaned tweets
-    // TODO: Need a way to filter out non-informative features
     public static JavaPairRDD<String, Integer> parseAndFilterFeatures(JavaPairRDD<Long, TweetElements> tweets,
-                                                                      boolean cached, boolean save, long numTweets) {
+                                                                      long numTweets, boolean cached, boolean save) {
         if (cached) {
             return JavaPairRDD.fromJavaRDD(App.sc.objectFile(FEATURES_PATH));
         }
@@ -158,7 +157,7 @@ public class TweetPivot {
 
     // Could change Set to be a Map of counts if a tweet can contribute more than one of any feature
     private static Set<String> getFeatures(Tuple2<Long, TweetElements> tweet) {
-        HashSet<String> s = new HashSet<>();
+        Set<String> s = new HashSet<>();
         // s.addAll(tweet._2().hashtags);  // Using hashtags as features results in a lot of features such as "anger"
         List<String> tokens = tweet._2().tokens;
         for (int i = 0; i <= tokens.size() - 2; i++) {
