@@ -16,7 +16,7 @@ class Ingest {
 
         try {
             tweets = parser.getParsedTweets(PARSED_TWEET_BUF_SIZE);
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("IO Exception in parsing tweets");
             throw new RuntimeException(e);
         }
@@ -40,7 +40,7 @@ class Ingest {
     }
 
     public static void main(String[] args) {
-        TweetParser parser = new TweetParser();
+        TweetParser parser = new TweetParserFromStdIn();
         ESClient client = new ESClient("cpserver.eastus.cloudapp.azure.com", 5000, "tweet_index",
                 "tweet");
         final Pipeline pipeline = Pipeline.getPipeline();
@@ -49,7 +49,6 @@ class Ingest {
         while (ingestTweets(parser, pipeline, client, counter)) {
             System.out.println("Checkpoint: " + counter++);
         }
-        ;
         client.close();
     }
 }

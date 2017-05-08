@@ -32,6 +32,7 @@ public class App {
         JavaPairRDD<String, Integer> features = TweetPivot.parseAndFilterFeatures(filteredTweets, numTweets,
                 featuresCached, true);
 
+        // Maybe move these Maps into generateFeatureVectors so they go out of scope after their use and can be GC-ed
         Map<String, Integer> enumeratedFeatures = null;
         Map<String, Integer> documentFeatureCounts = null;
         if (!featureVectorsCached) {
@@ -42,17 +43,20 @@ public class App {
         JavaPairRDD<Long, Vector> featureVectors = TweetPivot.generateFeatureVectors(filteredTweets,
                 enumeratedFeatures, documentFeatureCounts, numTweets, featureVectorsCached, true);
 
-        JavaPairRDD<Integer, Iterable<Long>> clusters = Clustering.cluster(featureVectors);
+        JavaPairRDD<Integer, Long> clusters = Clustering.cluster(featureVectors);
+
+        JavaPairRDD<Integer, String> labelledTweets = Clustering.getCorrespondingTweets(featureVectors, validTweets,
+                clusters);
 
         // System.out.println(validTweets.count());
         // System.out.println(filteredTweets.count());
         // System.out.println(features.count());
         // System.out.println(featureVectors.count());
-        Map<Integer, Iterable<Long>> clusterMap = Utils.getMap(clusters.collect());
-        for (Map.Entry<Integer, Iterable<Long>> e : clusterMap.entrySet()) {
+        Map<Integer, Iterable<String>> clusterMap = Utils.getMap(labelledTweets.groupByKey().collect());
+        for (Map.Entry<Integer, Iterable<String>> e : clusterMap.entrySet()) {
             System.out.print(e.getKey() + ": ");
             int count = 0;
-            for (Long l : e.getValue()) {
+            for (String l : e.getValue()) {
                 count++;
             }
             System.out.println(count);
