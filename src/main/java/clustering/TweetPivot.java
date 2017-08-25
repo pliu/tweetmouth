@@ -78,6 +78,7 @@ public class TweetPivot {
                 .mapToPair(tweet -> {
                     Set<String> s = getFeatures(tweet);
                     ArrayList<Tuple2<Integer, Double>> tuples = new ArrayList<>();
+                    double total = 0;
                     for (String f : s) {
                         Integer index = enumeratedFeatures.get(f);
                         if (index == null) {
@@ -85,11 +86,17 @@ public class TweetPivot {
                         }
                         double value = 1.0 / (Math.log(numTweets / documentFeatureCounts.get(f)));
                         tuples.add(new Tuple2<>(index, value));
+                        total += value;
                     }
                     if (tuples.size() < MIN_FEATURES_PER_TWEET) {
                         return new Tuple2<>(tweet._1(), null);
                     }
-                    return new Tuple2<>(tweet._1(), Vectors.sparse(enumeratedFeatures.size(), tuples));
+                    ArrayList<Tuple2<Integer, Double>> scaledTuples = new ArrayList<>();
+                    double denominator = Math.sqrt(total);
+                    for (Tuple2<Integer, Double> tuple : tuples) {
+                        scaledTuples.add(new Tuple2<>(tuple._1(), tuple._2()/denominator));
+                    }
+                    return new Tuple2<>(tweet._1(), Vectors.sparse(enumeratedFeatures.size(), scaledTuples));
                 })
                 .filter(tuple -> tuple._2() != null);
         if (save) {
