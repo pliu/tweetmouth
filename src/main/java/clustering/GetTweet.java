@@ -17,7 +17,7 @@ public class GetTweet {
         }
         JavaPairRDD<Long, String> validTweets = lines
                 .map(str -> str.split("~"))
-                .map(GetTweet::parsLine)
+                .map(GetTweet::parseLine)
                 .filter(Objects::nonNull)
                 .mapToPair(tuple -> tuple);
         if (save) {
@@ -26,7 +26,7 @@ public class GetTweet {
         return validTweets;
     }
 
-    private static Tuple2<Long, String> parsLine(String[] tokens) {
+    private static Tuple2<Long, String> parseLine(String[] tokens) {
         if (tokens.length != NUM_NONDERIVED_FIELDS) {
             return null;
         }
